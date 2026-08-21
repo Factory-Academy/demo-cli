@@ -22,7 +22,7 @@ describe('formatTable', () => {
       { id: '2', name: 'Another', status: 'pending' },
     ]
     const result = formatTable(data, ['id', 'name', 'status'], { compact: true })
-    expect(result).toBe('id name status\n1 Test active\n2 Another pending')
+    expect(result).toBe('id\tname\tstatus\n1\tTest\tactive\n2\tAnother\tpending')
   })
 
   test('compact mode skips separator line', () => {
@@ -35,5 +35,14 @@ describe('formatTable', () => {
 
   test('compact mode handles empty data', () => {
     expect(formatTable([], ['id', 'name'], { compact: true })).toBe('')
+  })
+
+  test('compact mode handles values with spaces', () => {
+    const data = [
+      { id: '1', name: 'Test Item', status: 'in progress' },
+      { id: '2', name: 'Another Item', status: 'pending review' },
+    ]
+    const result = formatTable(data, ['id', 'name', 'status'], { compact: true })
+    expect(result).toBe('id\tname\tstatus\n1\tTest Item\tin progress\n2\tAnother Item\tpending review')
   })
 })

@@ -8,9 +8,9 @@ export function formatTable(
   const compact = options?.compact ?? false
 
   if (compact) {
-    const header = columns.join(' ')
+    const header = columns.join('\t')
     const rows = data.map(row =>
-      columns.map(col => String(row[col] ?? '')).join(' ')
+      columns.map(col => String(row[col] ?? '')).join('\t')
     )
     return [header, ...rows].join('\n')
   }
