@@ -1,3 +1,7 @@
+export function sumArray(numbers: number[]): number {
+  return numbers.reduce((sum, num) => sum + num, 0)
+}
+
 export function formatTable(data: Record<string, any>[], columns: string[]): string {
   if (data.length === 0) return ''
 
