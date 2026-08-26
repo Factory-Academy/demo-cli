@@ -1,0 +1,25 @@
+src/utils/format.ts
+  d6647efc5445a7a6 11,13
+tests/item.test.ts
+  d6647efc5445a7a6 25,39-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.2",
+  "base_commit_sha": "b373d992451a17d42f5b1295923d5f82040873cc",
+  "prompts": {
+    "d6647efc5445a7a6": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "1c787fc8-107b-4e53-827c-47eb44b996c0",
+        "model": "claude-sonnet-4-5-20250929"
+      },
+      "human_author": "academy-eng-1",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 3,
+      "accepted_lines": 12,
+      "overriden_lines": 0
+    }
+  }
+}
