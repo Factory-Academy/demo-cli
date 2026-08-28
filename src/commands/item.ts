@@ -1,5 +1,6 @@
 import { Command } from 'commander'
 import { formatTable } from '../utils/format'
+import { featureFlags } from '../utils/featureFlags'
 
 interface Item {
   id: string
@@ -28,7 +29,18 @@ itemCommand
       console.log('No items found.')
       return
     }
-    console.log(formatTable(filtered, ['id', 'name', 'status', 'createdAt']))
+
+    // Feature flag: enhanced output includes description column
+    const enhancedOutput = featureFlags.isEnabled('ENHANCED_OUTPUT')
+    const columns = enhancedOutput
+      ? ['id', 'name', 'description', 'status', 'createdAt']
+      : ['id', 'name', 'status', 'createdAt']
+
+    if (enhancedOutput) {
+      console.log('🎨 Enhanced output enabled')
+    }
+
+    console.log(formatTable(filtered, columns))
   })
 
 itemCommand
