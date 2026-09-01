@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import { formatTable } from '../utils/format'
 import { featureFlags } from '../utils/featureFlags'
+import { schema, string } from '../utils/validation'
 
 interface Item {
   id: string
@@ -49,6 +50,22 @@ itemCommand
   .requiredOption('--name <name>', 'Item name')
   .option('--description <desc>', 'Item description')
   .action((opts) => {
+    // Validate input using schema-lite validators
+    const validator = schema()
+      .field('name', string().required().minLength(3).maxLength(50).build())
+      .field('description', string().maxLength(200).build())
+
+    const result = validator.validate({
+      name: opts.name,
+      description: opts.description
+    })
+
+    if (!result.valid) {
+      console.error('Validation failed:')
+      result.errors.forEach(err => console.error(`  - ${err.message}`))
+      process.exit(1)
+    }
+
     const item: Item = {
       id: String(nextId++),
       name: opts.name,

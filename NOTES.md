@@ -1,3 +1,276 @@
+# Implementation Notes
+
+## Table of Contents
+- [Feature Flags](#feature-flags)
+- [Input Validation](#input-validation)
+
+---
+
+# Input Validation
+
+## Overview
+
+The codebase includes a lightweight, composable schema-lite validation module for validating user input. The implementation provides a fluent API for building validators with common validation rules.
+
+## Architecture
+
+### Core Types
+
+```typescript
+interface ValidationError {
+  field: string
+  message: string
+}
+
+interface ValidationResult {
+  valid: boolean
+  errors: ValidationError[]
+}
+
+type ValidatorFn = (value: any, field: string) => ValidationError | null
+```
+
+### Validators
+
+The validation module provides three main validator classes:
+
+1. **StringValidator**: For string field validation
+2. **NumberValidator**: For numeric field validation
+3. **SchemaValidator**: For validating complete objects
+
+**Location:** `src/utils/validation.ts`
+
+## Usage
+
+### String Validation
+
+```typescript
+import { string } from '../utils/validation'
+
+// Build a string validator with multiple rules
+const nameValidator = string()
+  .required()
+  .minLength(3)
+  .maxLength(50)
+  .pattern(/^[a-zA-Z\s]+$/)
+  .build()
+
+// Validate a value
+const error = nameValidator('John Doe', 'name')
+if (error) {
+  console.error(error.message)
+}
+```
+
+#### Available String Rules
+
+- `required(message?)`: Field must not be empty or whitespace-only
+- `minLength(min, message?)`: String must be at least N characters
+- `maxLength(max, message?)`: String must not exceed N characters
+- `pattern(regex, message?)`: String must match the given regex pattern
+
+### Number Validation
+
+```typescript
+import { number } from '../utils/validation'
+
+// Build a number validator
+const ageValidator = number()
+  .required()
+  .min(0)
+  .max(120)
+  .integer()
+  .build()
+
+const error = ageValidator(25, 'age')
+```
+
+#### Available Number Rules
+
+- `required(message?)`: Field must be present and not empty
+- `min(min, message?)`: Number must be at least N
+- `max(max, message?)`: Number must not exceed N
+- `integer(message?)`: Number must be an integer
+
+### Schema Validation
+
+```typescript
+import { schema, string, number } from '../utils/validation'
+
+// Build a complete object schema
+const userSchema = schema()
+  .field('username', string().required().minLength(3).maxLength(20).build())
+  .field('email', string().required().pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).build())
+  .field('age', number().min(18).integer().build())
+
+// Validate an object
+const result = userSchema.validate({
+  username: 'john_doe',
+  email: 'john@example.com',
+  age: 25
+})
+
+if (!result.valid) {
+  result.errors.forEach(err => {
+    console.error(`${err.field}: ${err.message}`)
+  })
+}
+```
+
+## Integration Example
+
+The `items create` command demonstrates validation integration:
+
+```typescript
+// src/commands/item.ts
+itemCommand
+  .command('create')
+  .requiredOption('--name <name>', 'Item name')
+  .option('--description <desc>', 'Item description')
+  .action((opts) => {
+    // Validate input using schema-lite validators
+    const validator = schema()
+      .field('name', string().required().minLength(3).maxLength(50).build())
+      .field('description', string().maxLength(200).build())
+
+    const result = validator.validate({
+      name: opts.name,
+      description: opts.description
+    })
+
+    if (!result.valid) {
+      console.error('Validation failed:')
+      result.errors.forEach(err => console.error(`  - ${err.message}`))
+      process.exit(1)
+    }
+
+    // Continue with item creation...
+  })
+```
+
+**Try it:**
+
+```bash
+# Valid input
+npm run dev items create --name "Test Item" --description "A test"
+
+# Invalid: name too short
+npm run dev items create --name "AB"
+
+# Invalid: description too long
+npm run dev items create --name "Test" --description "X...X" # 201 chars
+```
+
+## Testing
+
+### Unit Tests
+
+Comprehensive unit tests are provided in `tests/validation.test.ts`:
+
+```bash
+npm test validation
+```
+
+Test coverage includes:
+- String validation: required, minLength, maxLength, pattern
+- Number validation: required, min, max, integer
+- Schema validation: multiple fields, error collection
+- Custom error messages
+- Edge cases: undefined, null, empty strings, whitespace
+
+### Integration Tests
+
+Integration tests for the item command validation are in `tests/item-validation.test.ts`:
+
+```bash
+npm test item-validation
+```
+
+## Custom Error Messages
+
+All validation rules accept optional custom error messages:
+
+```typescript
+const validator = string()
+  .required('Username cannot be empty')
+  .minLength(3, 'Username must be at least 3 characters long')
+  .pattern(/^[a-z0-9_]+$/, 'Username can only contain lowercase letters, numbers, and underscores')
+  .build()
+```
+
+## Validation Patterns
+
+### Chaining Validators
+
+Validators are evaluated in the order they are chained. The first error encountered is returned:
+
+```typescript
+const validator = string()
+  .required()      // Checked first
+  .minLength(3)    // Then this
+  .maxLength(50)   // Then this
+  .pattern(/^[a-z]+$/)  // Finally this
+  .build()
+```
+
+### Optional Fields
+
+Fields without `.required()` are treated as optional and skip validation if not provided:
+
+```typescript
+const schema = schema()
+  .field('name', string().required().build())  // Must be provided
+  .field('bio', string().maxLength(500).build())  // Optional, but if provided must be ≤500 chars
+```
+
+### Combining Multiple Schemas
+
+For complex validation, you can combine multiple validators:
+
+```typescript
+const baseValidator = schema()
+  .field('name', string().required().build())
+  .field('email', string().required().build())
+
+const extendedValidator = schema()
+  .field('name', string().required().build())
+  .field('email', string().required().build())
+  .field('age', number().min(18).build())
+```
+
+## Best Practices
+
+1. **Fail Fast:** Validate input at the entry point (command handlers, API endpoints)
+
+2. **Clear Messages:** Provide user-friendly error messages that explain what went wrong
+
+3. **Consistent Rules:** Use the same validation rules across similar fields
+
+4. **Test Edge Cases:** Always test boundary conditions (min/max lengths, empty strings, null/undefined)
+
+5. **Document Constraints:** Document validation rules in command descriptions or API docs
+
+## Files Modified/Created
+
+- ✨ **Created:** `src/utils/validation.ts` - Core validation module
+- ✨ **Created:** `tests/validation.test.ts` - Unit tests
+- ✨ **Created:** `tests/item-validation.test.ts` - Integration tests
+- 🔧 **Modified:** `src/commands/item.ts` - Applied validation to create command
+- 📝 **Updated:** `NOTES.md` - Added validation documentation
+
+## Future Enhancements
+
+Possible extensions to consider:
+
+- **Async validation:** Support for async validators (e.g., database uniqueness checks)
+- **Custom validators:** Easy way to add domain-specific validation functions
+- **Array validation:** Validate arrays of objects with nested schemas
+- **Conditional validation:** Rules that apply based on other field values
+- **Transform functions:** Sanitize/transform input during validation
+- **Localization:** Support for translated error messages
+
+---
+
 # Feature Flags - Implementation Notes
 
 ## Overview
