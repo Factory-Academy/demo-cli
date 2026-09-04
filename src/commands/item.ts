@@ -21,8 +21,8 @@ itemCommand
   .option('--status <status>', 'Filter by status')
   .action((opts) => {
     let filtered = items
-    if (opts.status) {
-      filtered = items.filter(i => i.status === opts.status)
+    if (opts.status !== undefined) {
+      filtered = items.filter(item => item.status === opts.status)
     }
     if (filtered.length === 0) {
       console.log('No items found.')
