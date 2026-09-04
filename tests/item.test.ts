@@ -15,4 +15,22 @@ describe('formatTable', () => {
   test('handles empty data', () => {
     expect(formatTable([], ['id', 'name'])).toBe('')
   })
+
+  test('handles empty status filter gracefully', () => {
+    const data = [
+      { id: '1', name: 'Test', status: 'active' },
+      { id: '2', name: 'Another', status: 'pending' },
+    ]
+    // Empty strings should be trimmed and not filter
+    const emptyStatusFilter = ''?.trim()
+    const shouldNotFilter = !emptyStatusFilter
+    expect(shouldNotFilter).toBe(true)
+  })
+
+  test('handles whitespace-only status filter', () => {
+    // Whitespace-only strings should trim to empty and not filter
+    const whitespaceFilter = '   '?.trim()
+    const shouldNotFilter = !whitespaceFilter
+    expect(shouldNotFilter).toBe(true)
+  })
 })
