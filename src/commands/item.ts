@@ -21,8 +21,9 @@ itemCommand
   .option('--status <status>', 'Filter by status')
   .action((opts) => {
     let filtered = items
-    if (opts.status) {
-      filtered = items.filter(item => item.status === opts.status)
+    const statusFilter = opts.status?.trim()
+    if (statusFilter) {
+      filtered = items.filter(item => item.status === statusFilter)
     }
     if (filtered.length === 0) {
       console.log('No items found.')
@@ -52,9 +53,14 @@ itemCommand
   .command('get <id>')
   .description('Get item by ID')
   .action((id: string) => {
-    const item = items.find(foundItem => foundItem.id === id)
+    const trimmedId = id?.trim()
+    if (!trimmedId) {
+      console.error('Item ID cannot be empty')
+      process.exit(1)
+    }
+    const item = items.find(elem => elem.id === trimmedId)
     if (!item) {
-      console.error(`Item ${id} not found`)
+      console.error(`Item ${trimmedId} not found`)
       process.exit(1)
     }
     console.log(JSON.stringify(item, null, 2))
