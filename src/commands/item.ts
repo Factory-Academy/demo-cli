@@ -22,7 +22,7 @@ itemCommand
   .action((opts) => {
     let filtered = items
     if (opts.status) {
-      filtered = items.filter(i => i.status === opts.status)
+      filtered = items.filter(item => item.status === opts.status)
     }
     if (filtered.length === 0) {
       console.log('No items found.')
@@ -52,7 +52,7 @@ itemCommand
   .command('get <id>')
   .description('Get item by ID')
   .action((id: string) => {
-    const item = items.find(i => i.id === id)
+    const item = items.find(foundItem => foundItem.id === id)
     if (!item) {
       console.error(`Item ${id} not found`)
       process.exit(1)
