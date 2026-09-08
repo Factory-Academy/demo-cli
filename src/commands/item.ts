@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import { formatTable } from '../utils/format'
 import { LRUCache } from '../utils/lru-cache'
+import { paginate } from '../utils/pagination'
 
 interface Item {
   id: string
@@ -26,6 +27,8 @@ itemCommand
   .command('list')
   .description('List all items')
   .option('--status <status>', 'Filter by status')
+  .option('--cursor <cursor>', 'Pagination cursor')
+  .option('--limit <limit>', 'Number of items per page', '10')
   .action((opts) => {
     let filtered = items
     if (opts.status) {
@@ -35,7 +38,21 @@ itemCommand
       console.log('No items found.')
       return
     }
-    console.log(formatTable(filtered, ['id', 'name', 'status', 'createdAt']))
+
+    // Apply pagination
+    const limit = parseInt(opts.limit, 10)
+    const result = paginate(filtered, {
+      cursor: opts.cursor,
+      limit: isNaN(limit) ? 10 : limit,
+    })
+
+    console.log(formatTable(result.items, ['id', 'name', 'status', 'createdAt']))
+    
+    if (result.hasMore && result.nextCursor) {
+      console.log(`\nShowing ${result.items.length} items. For next page, use: --cursor ${result.nextCursor}`)
+    } else {
+      console.log(`\nShowing ${result.items.length} items (last page)`)
+    }
   })
 
 itemCommand
