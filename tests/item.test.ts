@@ -62,4 +62,34 @@ describe('item list with pagination', () => {
     expect(result.items[1].status).toBe('active')
     expect(result.hasMore).toBe(true)
   })
+
+  test('rejects invalid limit values', () => {
+    const items = [
+      { id: '1', name: 'Item 1', status: 'active', createdAt: '2023-01-01' },
+    ]
+
+    // Zero limit
+    expect(() => paginate(items, { limit: 0 })).toThrow('Limit must be a positive integer')
+
+    // Negative limit
+    expect(() => paginate(items, { limit: -10 })).toThrow('Limit must be a positive integer')
+
+    // Float limit
+    expect(() => paginate(items, { limit: 5.5 })).toThrow('Limit must be a positive integer')
+  })
+
+  test('handles cursor at exact boundary', () => {
+    const items = Array.from({ length: 10 }, (_, i) => ({
+      id: String(i + 1),
+      name: `Item ${i + 1}`,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+    }))
+
+    // Get all items with one page
+    const page1 = paginate(items, { limit: 10 })
+    expect(page1.items).toHaveLength(10)
+    expect(page1.hasMore).toBe(false)
+    expect(page1.nextCursor).toBeUndefined()
+  })
 })

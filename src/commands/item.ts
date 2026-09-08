@@ -1,7 +1,7 @@
 import { Command } from 'commander'
 import { formatTable } from '../utils/format'
 import { LRUCache } from '../utils/lru-cache'
-import { paginate } from '../utils/pagination'
+import { paginate, MAX_PAGE_LIMIT } from '../utils/pagination'
 
 interface Item {
   id: string
@@ -39,19 +39,37 @@ itemCommand
       return
     }
 
-    // Apply pagination
-    const limit = parseInt(opts.limit, 10)
-    const result = paginate(filtered, {
-      cursor: opts.cursor,
-      limit: isNaN(limit) ? 10 : limit,
-    })
-
-    console.log(formatTable(result.items, ['id', 'name', 'status', 'createdAt']))
+    // Parse and validate limit
+    const parsedLimit = parseInt(opts.limit, 10)
+    let limit = 10 // default
     
-    if (result.hasMore && result.nextCursor) {
-      console.log(`\nShowing ${result.items.length} items. For next page, use: --cursor ${result.nextCursor}`)
+    if (isNaN(parsedLimit) || parsedLimit <= 0) {
+      console.error(`Invalid limit: must be a positive integer. Using default: 10`)
+      limit = 10
+    } else if (parsedLimit > MAX_PAGE_LIMIT) {
+      console.error(`Invalid limit: cannot exceed ${MAX_PAGE_LIMIT}. Using maximum: ${MAX_PAGE_LIMIT}`)
+      limit = MAX_PAGE_LIMIT
     } else {
-      console.log(`\nShowing ${result.items.length} items (last page)`)
+      limit = parsedLimit
+    }
+
+    try {
+      // Apply pagination
+      const result = paginate(filtered, {
+        cursor: opts.cursor,
+        limit,
+      })
+
+      console.log(formatTable(result.items, ['id', 'name', 'status', 'createdAt']))
+      
+      if (result.hasMore && result.nextCursor) {
+        console.log(`\nShowing ${result.items.length} items. For next page, use: --cursor ${result.nextCursor}`)
+      } else {
+        console.log(`\nShowing ${result.items.length} items (last page)`)
+      }
+    } catch (error) {
+      console.error(`Pagination error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      process.exit(1)
     }
   })
 

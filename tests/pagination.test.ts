@@ -1,4 +1,4 @@
-import { paginate, encodeCursor, decodeCursor } from '../src/utils/pagination'
+import { paginate, encodeCursor, decodeCursor, MAX_PAGE_LIMIT } from '../src/utils/pagination'
 
 describe('pagination', () => {
   describe('encodeCursor', () => {
@@ -42,6 +42,16 @@ describe('pagination', () => {
 
     test('throws on non-numeric cursor', () => {
       const cursor = Buffer.from('abc').toString('base64')
+      expect(() => decodeCursor(cursor)).toThrow('Invalid cursor value')
+    })
+
+    test('throws on floating point cursor', () => {
+      const cursor = Buffer.from('10.5').toString('base64')
+      expect(() => decodeCursor(cursor)).toThrow('Invalid cursor value')
+    })
+
+    test('throws on cursor with whitespace', () => {
+      const cursor = Buffer.from(' 10 ').toString('base64')
       expect(() => decodeCursor(cursor)).toThrow('Invalid cursor value')
     })
   })
@@ -171,6 +181,40 @@ describe('pagination', () => {
         cursor: 'invalid',
         limit: 10,
       })).toThrow()
+    })
+
+    test('throws on zero limit', () => {
+      expect(() => paginate(sampleData, { limit: 0 })).toThrow('Limit must be a positive integer')
+    })
+
+    test('throws on negative limit', () => {
+      expect(() => paginate(sampleData, { limit: -5 })).toThrow('Limit must be a positive integer')
+    })
+
+    test('throws on floating point limit', () => {
+      expect(() => paginate(sampleData, { limit: 10.5 })).toThrow('Limit must be a positive integer')
+    })
+
+    test('throws on limit exceeding MAX_PAGE_LIMIT', () => {
+      expect(() => paginate(sampleData, { limit: MAX_PAGE_LIMIT + 1 }))
+        .toThrow(`Limit cannot exceed ${MAX_PAGE_LIMIT}`)
+    })
+
+    test('accepts limit at MAX_PAGE_LIMIT', () => {
+      const data = Array.from({ length: 2000 }, (_, i) => ({ id: String(i + 1) }))
+      const result = paginate(data, { limit: MAX_PAGE_LIMIT })
+      
+      expect(result.items).toHaveLength(MAX_PAGE_LIMIT)
+      expect(result.hasMore).toBe(true)
+    })
+
+    test('handles offset exactly at items.length', () => {
+      const cursor = encodeCursor(sampleData.length)
+      const result = paginate(sampleData, { cursor, limit: 10 })
+      
+      expect(result.items).toHaveLength(0)
+      expect(result.hasMore).toBe(false)
+      expect(result.nextCursor).toBeUndefined()
     })
   })
 })
