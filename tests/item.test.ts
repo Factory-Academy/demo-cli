@@ -16,6 +16,11 @@ describe('formatTable', () => {
     expect(formatTable([], ['id', 'name'])).toBe('')
   })
 
+  test('handles empty columns', () => {
+    const data = [{ id: '1', name: 'Test' }]
+    expect(formatTable(data, [])).toBe('')
+  })
+
   test('formats data in compact mode', () => {
     const data = [
       { id: '1', name: 'Test', status: 'active' },
@@ -29,5 +34,12 @@ describe('formatTable', () => {
 
   test('handles empty data in compact mode', () => {
     expect(formatTable([], ['id', 'name'], true)).toBe('')
+  })
+
+  test('uses pipe separator in compact mode', () => {
+    const data = [{ id: '1', name: 'Test', status: 'active' }]
+    const result = formatTable(data, ['id', 'name', 'status'], true)
+    expect(result).toBe('1 | Test | active')
+    expect(result).not.toContain('  ')
   })
 })

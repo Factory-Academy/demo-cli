@@ -1,5 +1,5 @@
 export function formatTable(data: Record<string, any>[], columns: string[], compact: boolean = false): string {
-  if (data.length === 0) return ''
+  if (data.length === 0 || columns.length === 0) return ''
 
   if (compact) {
     return data.map(row =>
