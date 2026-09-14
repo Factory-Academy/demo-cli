@@ -19,6 +19,7 @@ itemCommand
   .command('list')
   .description('List all items')
   .option('--status <status>', 'Filter by status')
+  .option('--compact', 'Output in compact format')
   .action((opts) => {
     let filtered = items
     if (opts.status) {
@@ -28,7 +29,7 @@ itemCommand
       console.log('No items found.')
       return
     }
-    console.log(formatTable(filtered, ['id', 'name', 'status', 'createdAt']))
+    console.log(formatTable(filtered, ['id', 'name', 'status', 'createdAt'], opts.compact))
   })
 
 itemCommand

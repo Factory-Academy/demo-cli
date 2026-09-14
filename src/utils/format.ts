@@ -1,5 +1,11 @@
-export function formatTable(data: Record<string, any>[], columns: string[]): string {
+export function formatTable(data: Record<string, any>[], columns: string[], compact: boolean = false): string {
   if (data.length === 0) return ''
+
+  if (compact) {
+    return data.map(row =>
+      columns.map(col => String(row[col] ?? '')).join(' | ')
+    ).join('\n')
+  }
 
   const widths = columns.map(col =>
     Math.max(col.length, ...data.map(row => String(row[col] ?? '').length))
