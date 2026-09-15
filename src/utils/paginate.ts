@@ -13,22 +13,26 @@ export function paginate<T>(
   page: number,
   pageSize: number
 ): PaginationResult<T> {
+  // Validate and normalize inputs
+  const normalizedPageSize = Math.max(1, Math.floor(Math.abs(pageSize)))
+  const normalizedPage = Math.max(1, Math.floor(Math.abs(page)))
+  
   const totalItems = items.length
-  const totalPages = Math.ceil(totalItems / pageSize)
+  const totalPages = Math.ceil(totalItems / normalizedPageSize)
   
   // Clamp page to valid range
-  const currentPage = Math.max(1, Math.min(page, totalPages || 1))
+  const currentPage = Math.max(1, Math.min(normalizedPage, totalPages || 1))
   
   // Calculate slice boundaries (fix: use correct zero-based indexing)
-  const startIndex = (currentPage - 1) * pageSize
-  const endIndex = startIndex + pageSize
+  const startIndex = (currentPage - 1) * normalizedPageSize
+  const endIndex = startIndex + normalizedPageSize
   
   const pageItems = items.slice(startIndex, endIndex)
   
   return {
     items: pageItems,
     page: currentPage,
-    pageSize,
+    pageSize: normalizedPageSize,
     totalItems,
     totalPages,
     hasNextPage: currentPage < totalPages,

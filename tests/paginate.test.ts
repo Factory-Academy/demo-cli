@@ -79,4 +79,37 @@ describe('paginate', () => {
     ]
     expect(allItems).toEqual(items)
   })
+
+  test('handles zero or negative pageSize', () => {
+    const items = ['a', 'b', 'c']
+    
+    const resultZero = paginate(items, 1, 0)
+    expect(resultZero.pageSize).toBe(1)
+    expect(resultZero.items).toEqual(['a'])
+    
+    const resultNegative = paginate(items, 1, -5)
+    expect(resultNegative.pageSize).toBe(5)
+    expect(resultNegative.items).toEqual(['a', 'b', 'c'])
+  })
+
+  test('handles zero or negative page number', () => {
+    const items = ['a', 'b', 'c']
+    
+    const resultZero = paginate(items, 0, 2)
+    expect(resultZero.page).toBe(1)
+    expect(resultZero.items).toEqual(['a', 'b'])
+    
+    const resultNegative = paginate(items, -1, 2)
+    expect(resultNegative.page).toBe(1)
+    expect(resultNegative.items).toEqual(['a', 'b'])
+  })
+
+  test('handles decimal page and pageSize values', () => {
+    const items = ['a', 'b', 'c', 'd', 'e']
+    
+    const result = paginate(items, 2.7, 2.3)
+    expect(result.page).toBe(2)
+    expect(result.pageSize).toBe(2)
+    expect(result.items).toEqual(['c', 'd'])
+  })
 })
