@@ -1,7 +1,8 @@
 import { Clock, systemClock } from './clock'
-import { NotFoundError, ValidationError } from './errors'
+import { NotFoundError } from './errors'
 import { Store } from './store'
 import { CreateItemInput, Item, ItemFilter } from './types'
+import { requireNonEmptyString } from './validation'
 
 export const ITEM_RESOURCE = 'Item'
 
@@ -18,16 +19,13 @@ export class ItemService {
 
   create(input: CreateItemInput): Item {
     // Commander enforces that `--name` is present, but it happily accepts an
-    // empty or whitespace-only value. Reject that here so the core never
-    // stores a nameless item. The original untrimmed value is preserved for
-    // valid names to keep existing behavior intact.
-    if (!input.name || input.name.trim() === '') {
-      throw new ValidationError('Item name is required')
-    }
+    // empty or whitespace-only value. `requireNonEmptyString` rejects that
+    // while preserving the exact untrimmed name for valid input.
+    const name = requireNonEmptyString(input.name, 'Item name')
 
     return this.store.add({
       id: this.store.nextId(),
-      name: input.name,
+      name,
       description: input.description,
       status: 'active',
       createdAt: this.clock.now().toISOString(),
@@ -42,9 +40,12 @@ export class ItemService {
   }
 
   get(id: string): Item {
-    const item = this.store.findById(id)
+    // A blank id can never match a stored record; treat it as bad input rather
+    // than reporting a confusing "Item  not found".
+    const lookupId = requireNonEmptyString(id, 'Item id')
+    const item = this.store.findById(lookupId)
     if (!item) {
-      throw new NotFoundError(ITEM_RESOURCE, id)
+      throw new NotFoundError(ITEM_RESOURCE, lookupId)
     }
     return item
   }

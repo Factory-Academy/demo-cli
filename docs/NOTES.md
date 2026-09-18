@@ -81,3 +81,53 @@ unaffected:
 - `commands.test.ts` — the adapters end-to-end through Commander, asserting the
   legacy stdout strings.
 - `item.test.ts` — the existing `formatTable` coverage, unchanged.
+
+## Follow-up: tightening validation edge cases
+
+Review feedback on the refactor PR flagged two loose ends. Both are now closed.
+
+### 1. `--priority` was too permissive
+
+The adapter parsed the flag with `parseInt(opts.priority, 10)`, and the core
+only checked `Number.isFinite`. That let three surprising inputs through:
+
+| Input           | Old result           | New result                             |
+|-----------------|----------------------|----------------------------------------|
+| `--priority 5.9`  | stored `5` (truncated) | `Widget priority must be an integer`   |
+| `--priority 5abc` | stored `5` (prefix)    | `Widget priority must be an integer`   |
+| `--priority=-1`   | stored `-1`            | `Widget priority must not be negative` |
+
+The fix splits the concern along the existing boundary:
+
+- **`commands/parse.ts`** — `parseIntegerOption` turns the raw CLI string into a
+  real integer, accepting only an optional sign plus digits. Floats, trailing
+  garbage, and hex/exponent forms are rejected here, where the raw string lives.
+- **`core/validation.ts`** — `assertNonNegativeInteger` enforces the *domain*
+  rule (finite, whole, non-negative) on the parsed number, independent of the
+  CLI. Priority is a rank, so negatives are rejected.
+
+Valid input is unchanged: an omitted flag still defaults to `0`, and
+`--priority 5` still stores `5`.
+
+### 2. The "required string" guard was duplicated
+
+Both services repeated `if (!value || value.trim() === '')` per field, so a rule
+change had to be made in two places. `core/validation.ts` now owns
+`requireNonEmptyString`, which both services call for `name` (and `itemId`). It
+still returns the original untrimmed value, so names keep their exact spacing.
+
+The same helper now guards `ItemService.get` / `WidgetService.get`: a blank id
+raises `ValidationError` ("Item id is required") instead of the misleading
+`Item  not found`. Non-blank lookups are unaffected.
+
+### New/updated tests
+
+- `validation.test.ts` — the shared guards, including message ordering
+  (non-finite is reported before non-integer).
+- `parse.test.ts` — strict integer parsing: signs, whitespace, and the
+  fraction/garbage/hex cases `parseInt` used to swallow.
+- `widgetService.test.ts` — added fractional, negative, and explicit-zero
+  priority cases plus the blank-id guard.
+- `itemService.test.ts` — added the blank-id guard.
+- `commands.test.ts` — drives the bad `--priority` inputs through Commander and
+  asserts the stderr message and exit code via a stubbed `process.exit`.

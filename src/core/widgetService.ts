@@ -1,7 +1,8 @@
 import { Clock, systemClock } from './clock'
-import { NotFoundError, ValidationError } from './errors'
+import { NotFoundError } from './errors'
 import { Store } from './store'
 import { CreateWidgetInput, Widget, WidgetFilter } from './types'
+import { assertNonNegativeInteger, requireNonEmptyString } from './validation'
 
 export const WIDGET_RESOURCE = 'Widget'
 
@@ -14,24 +15,18 @@ export class WidgetService {
   constructor(private readonly clock: Clock = systemClock) {}
 
   create(input: CreateWidgetInput): Widget {
-    if (!input.name || input.name.trim() === '') {
-      throw new ValidationError('Widget name is required')
-    }
-    if (!input.itemId || input.itemId.trim() === '') {
-      throw new ValidationError('Widget itemId is required')
-    }
+    const name = requireNonEmptyString(input.name, 'Widget name')
+    const itemId = requireNonEmptyString(input.itemId, 'Widget itemId')
 
-    // The legacy adapter did `parseInt(opts.priority, 10)` and silently stored
-    // NaN for garbage like `--priority abc`. Guard against that here.
-    const priority = input.priority ?? 0
-    if (!Number.isFinite(priority)) {
-      throw new ValidationError('Widget priority must be a finite number')
-    }
+    // The legacy adapter did `parseInt(opts.priority, 10)`, which stored NaN
+    // for garbage like `--priority abc` and silently truncated floats. Priority
+    // is a rank, so require a finite, non-negative integer; the default is 0.
+    const priority = assertNonNegativeInteger(input.priority ?? 0, 'Widget priority')
 
     return this.store.add({
       id: this.store.nextId(),
-      name: input.name,
-      itemId: input.itemId,
+      name,
+      itemId,
       priority,
       createdAt: this.clock.now().toISOString(),
     })
@@ -45,9 +40,10 @@ export class WidgetService {
   }
 
   get(id: string): Widget {
-    const widget = this.store.findById(id)
+    const lookupId = requireNonEmptyString(id, 'Widget id')
+    const widget = this.store.findById(lookupId)
     if (!widget) {
-      throw new NotFoundError(WIDGET_RESOURCE, id)
+      throw new NotFoundError(WIDGET_RESOURCE, lookupId)
     }
     return widget
   }

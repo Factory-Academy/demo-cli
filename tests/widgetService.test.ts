@@ -39,6 +39,27 @@ describe('WidgetService.create', () => {
     )
     expect(svc.size).toBe(0)
   })
+
+  test('rejects a fractional priority instead of truncating it', () => {
+    const svc = service()
+    expect(() => svc.create({ name: 'W1', itemId: 'i1', priority: 2.5 })).toThrow(
+      'Widget priority must be a whole number',
+    )
+    expect(svc.size).toBe(0)
+  })
+
+  test('rejects a negative priority', () => {
+    const svc = service()
+    expect(() => svc.create({ name: 'W1', itemId: 'i1', priority: -1 })).toThrow(
+      'Widget priority must not be negative',
+    )
+    expect(svc.size).toBe(0)
+  })
+
+  test('accepts a priority of 0 explicitly', () => {
+    const widget = service().create({ name: 'W1', itemId: 'i1', priority: 0 })
+    expect(widget.priority).toBe(0)
+  })
 })
 
 describe('WidgetService.list', () => {
@@ -70,5 +91,11 @@ describe('WidgetService.get', () => {
   test('throws NotFoundError with a widget-specific message', () => {
     expect(() => service().get('7')).toThrow(NotFoundError)
     expect(() => service().get('7')).toThrow('Widget 7 not found')
+  })
+
+  test('rejects a blank id as invalid rather than "not found"', () => {
+    const svc = service()
+    expect(() => svc.get('')).toThrow(ValidationError)
+    expect(() => svc.get('   ')).toThrow('Widget id is required')
   })
 })

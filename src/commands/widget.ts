@@ -1,10 +1,11 @@
 import { Command } from 'commander'
 import { WidgetService } from '../core/widgetService'
 import { renderWidgetList, reportFailure } from './output'
+import { parseIntegerOption } from './parse'
 
 // Thin CLI adapter for the `widgets` command group. See item.ts for the
-// rationale; this mirrors it. The `--priority` string is parsed here so the
-// core only ever receives a number.
+// rationale; this mirrors it. The `--priority` string is parsed here (strictly,
+// via parseIntegerOption) so the core only ever receives a real integer.
 export function createWidgetCommand(service: WidgetService = new WidgetService()): Command {
   const command = new Command('widgets').description('Manage widgets')
 
@@ -27,7 +28,7 @@ export function createWidgetCommand(service: WidgetService = new WidgetService()
         const widget = service.create({
           name: opts.name,
           itemId: opts.itemId,
-          priority: parseInt(opts.priority, 10),
+          priority: parseIntegerOption(opts.priority, 'Widget priority'),
         })
         console.log(`Created widget ${widget.id}: ${widget.name}`)
       } catch (error) {

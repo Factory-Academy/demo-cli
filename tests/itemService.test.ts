@@ -74,4 +74,10 @@ describe('ItemService.get', () => {
     expect(() => svc.get('42')).toThrow(NotFoundError)
     expect(() => svc.get('42')).toThrow('Item 42 not found')
   })
+
+  test('rejects a blank id as invalid rather than "not found"', () => {
+    const svc = service()
+    expect(() => svc.get('')).toThrow(ValidationError)
+    expect(() => svc.get('   ')).toThrow('Item id is required')
+  })
 })
