@@ -12,12 +12,32 @@ export class LRUCache<T> {
     if (maxSize <= 0) {
       throw new Error('maxSize must be greater than 0')
     }
+    if (defaultTTL !== undefined && defaultTTL <= 0) {
+      throw new Error('defaultTTL must be greater than 0')
+    }
     this.cache = new Map()
     this.maxSize = maxSize
     this.defaultTTL = defaultTTL
   }
 
+  private validateKey(key: string): void {
+    if (!key || typeof key !== 'string') {
+      throw new Error('key must be a non-empty string')
+    }
+  }
+
+  private validateTTL(ttl: number | undefined): void {
+    if (ttl !== undefined && (ttl <= 0 || !Number.isFinite(ttl))) {
+      throw new Error('ttl must be a positive finite number')
+    }
+  }
+
+  private isExpired(entry: CacheEntry<T>): boolean {
+    return entry.expiresAt !== undefined && entry.expiresAt < Date.now()
+  }
+
   get(key: string): T | undefined {
+    this.validateKey(key)
     const entry = this.cache.get(key)
 
     if (!entry) {
@@ -25,7 +45,7 @@ export class LRUCache<T> {
     }
 
     // Check if entry has expired
-    if (entry.expiresAt && entry.expiresAt < Date.now()) {
+    if (this.isExpired(entry)) {
       this.cache.delete(key)
       return undefined
     }
@@ -38,13 +58,18 @@ export class LRUCache<T> {
   }
 
   set(key: string, value: T, ttl?: number): void {
+    this.validateKey(key)
+    this.validateTTL(ttl)
+
     // Remove existing key to reset position
     if (this.cache.has(key)) {
       this.cache.delete(key)
     }
 
-    const expiresAt = ttl || this.defaultTTL
-      ? Date.now() + ((ttl ?? this.defaultTTL)! * 1000)
+    // Calculate expiration time with proper fallback logic
+    const effectiveTTL = ttl !== undefined ? ttl : this.defaultTTL
+    const expiresAt = effectiveTTL !== undefined
+      ? Date.now() + (effectiveTTL * 1000)
       : undefined
 
     const entry: CacheEntry<T> = { value, expiresAt }
@@ -58,6 +83,7 @@ export class LRUCache<T> {
   }
 
   evict(key: string): void {
+    this.validateKey(key)
     this.cache.delete(key)
   }
 

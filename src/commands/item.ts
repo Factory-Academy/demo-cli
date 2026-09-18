@@ -74,3 +74,18 @@ itemCommand
 
     console.log(JSON.stringify(item, null, 2))
   })
+
+itemCommand
+  .command('delete <id>')
+  .description('Delete item by ID')
+  .action((id: string) => {
+    const index = items.findIndex(i => i.id === id)
+    if (index === -1) {
+      console.error(`Item ${id} not found`)
+      process.exit(1)
+    }
+    // Remove from array and invalidate cache
+    const deleted = items.splice(index, 1)[0]
+    itemCache.evict(id)
+    console.log(`Deleted item ${id}: ${deleted.name}`)
+  })

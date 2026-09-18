@@ -16,6 +16,11 @@ describe('LRUCache', () => {
       expect(() => new LRUCache<string>(0)).toThrow('maxSize must be greater than 0')
       expect(() => new LRUCache<string>(-1)).toThrow('maxSize must be greater than 0')
     })
+
+    test('throws error if default TTL is 0 or negative', () => {
+      expect(() => new LRUCache<string>(10, 0)).toThrow('defaultTTL must be greater than 0')
+      expect(() => new LRUCache<string>(10, -5)).toThrow('defaultTTL must be greater than 0')
+    })
   })
 
   describe('set and get', () => {
@@ -53,6 +58,32 @@ describe('LRUCache', () => {
       const obj = { id: '1', name: 'Test' }
       cache.set('obj', obj)
       expect(cache.get('obj')).toEqual(obj)
+    })
+
+    test('throws error for empty string key', () => {
+      const cache = new LRUCache<string>(10)
+      expect(() => cache.set('', 'value')).toThrow('key must be a non-empty string')
+    })
+
+    test('throws error when getting with empty string key', () => {
+      const cache = new LRUCache<string>(10)
+      expect(() => cache.get('')).toThrow('key must be a non-empty string')
+    })
+
+    test('throws error for invalid TTL (zero or negative)', () => {
+      const cache = new LRUCache<string>(10)
+      expect(() => cache.set('key1', 'value', 0)).toThrow('ttl must be a positive finite number')
+      expect(() => cache.set('key1', 'value', -1)).toThrow('ttl must be a positive finite number')
+    })
+
+    test('throws error for invalid TTL (non-finite)', () => {
+      const cache = new LRUCache<string>(10)
+      expect(() => cache.set('key1', 'value', Infinity)).toThrow('ttl must be a positive finite number')
+      expect(() => cache.set('key1', 'value', NaN)).toThrow('ttl must be a positive finite number')
+    })
+
+    test('allows TTL of 0 to be rejected in constructor', () => {
+      expect(() => new LRUCache<string>(10, 0)).toThrow('defaultTTL must be greater than 0')
     })
   })
 
@@ -179,6 +210,11 @@ describe('LRUCache', () => {
       cache.evict('nonexistent')
       expect(cache.get('key1')).toBe('value1')
       expect(cache.size()).toBe(1)
+    })
+
+    test('throws error for empty string key', () => {
+      const cache = new LRUCache<string>(10)
+      expect(() => cache.evict('')).toThrow('key must be a non-empty string')
     })
   })
 
