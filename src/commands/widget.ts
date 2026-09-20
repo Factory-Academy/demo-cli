@@ -1,5 +1,6 @@
 import { Command } from 'commander'
 import { formatTable } from '../utils/format'
+import { AsyncStorage } from '../utils/storage'
 
 interface Widget {
   id: string
@@ -9,8 +10,7 @@ interface Widget {
   createdAt: string
 }
 
-const widgets: Widget[] = []
-let nextId = 1
+const storage = new AsyncStorage<Widget>('widgets')
 
 export const widgetCommand = new Command('widgets')
   .description('Manage widgets')
@@ -19,10 +19,12 @@ widgetCommand
   .command('list')
   .description('List all widgets')
   .option('--item-id <itemId>', 'Filter by item ID')
-  .action((opts) => {
-    let filtered = widgets
+  .action(async (opts) => {
+    let filtered: Widget[]
     if (opts.itemId) {
-      filtered = widgets.filter(w => w.itemId === opts.itemId)
+      filtered = await storage.filter(w => w.itemId === opts.itemId)
+    } else {
+      filtered = await storage.readAll()
     }
     if (filtered.length === 0) {
       console.log('No widgets found.')
@@ -37,14 +39,13 @@ widgetCommand
   .requiredOption('--name <name>', 'Widget name')
   .requiredOption('--item-id <itemId>', 'Parent item ID')
   .option('--priority <priority>', 'Priority level', '0')
-  .action((opts) => {
-    const widget: Widget = {
-      id: String(nextId++),
+  .action(async (opts) => {
+    const widgetData = {
       name: opts.name,
       itemId: opts.itemId,
       priority: parseInt(opts.priority, 10),
       createdAt: new Date().toISOString(),
     }
-    widgets.push(widget)
+    const widget = await storage.create(widgetData)
     console.log(`Created widget ${widget.id}: ${widget.name}`)
   })
