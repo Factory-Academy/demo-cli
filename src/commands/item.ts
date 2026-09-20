@@ -1,5 +1,6 @@
 import { Command } from 'commander'
 import { formatTable } from '../utils/format'
+import { LRUCache } from '../utils/lru-cache'
 
 interface Item {
   id: string
@@ -11,6 +12,9 @@ interface Item {
 
 const items: Item[] = []
 let nextId = 1
+
+// Cache items for up to 5 minutes with a max of 50 entries
+const itemCache = new LRUCache<Item>(50, 300)
 
 export const itemCommand = new Command('items')
   .description('Manage items')
@@ -45,6 +49,8 @@ itemCommand
       createdAt: new Date().toISOString(),
     }
     items.push(item)
+    // Cache the newly created item
+    itemCache.set(item.id, item)
     console.log(`Created item ${item.id}: ${item.name}`)
   })
 
@@ -52,10 +58,34 @@ itemCommand
   .command('get <id>')
   .description('Get item by ID')
   .action((id: string) => {
-    const item = items.find(i => i.id === id)
+    // Check cache first
+    let item = itemCache.get(id)
+
     if (!item) {
+      // Fetch from items array
+      item = items.find(i => i.id === id)
+      if (!item) {
+        console.error(`Item ${id} not found`)
+        process.exit(1)
+      }
+      // Cache the item
+      itemCache.set(id, item)
+    }
+
+    console.log(JSON.stringify(item, null, 2))
+  })
+
+itemCommand
+  .command('delete <id>')
+  .description('Delete item by ID')
+  .action((id: string) => {
+    const index = items.findIndex(i => i.id === id)
+    if (index === -1) {
       console.error(`Item ${id} not found`)
       process.exit(1)
     }
-    console.log(JSON.stringify(item, null, 2))
+    // Remove from array and invalidate cache
+    const deleted = items.splice(index, 1)[0]
+    itemCache.evict(id)
+    console.log(`Deleted item ${id}: ${deleted.name}`)
   })
