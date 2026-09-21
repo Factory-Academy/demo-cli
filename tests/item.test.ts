@@ -1,4 +1,4 @@
-import { formatTable } from '../src/utils/format'
+import { formatTable, formatDuration } from '../src/utils/format'
 import { LRUCache } from '../src/utils/lru-cache'
 
 describe('formatTable', () => {
@@ -15,6 +15,46 @@ describe('formatTable', () => {
 
   test('handles empty data', () => {
     expect(formatTable([], ['id', 'name'])).toBe('')
+  })
+})
+
+describe('formatDuration', () => {
+  test('formats milliseconds', () => {
+    expect(formatDuration(0)).toBe('0 ms')
+    expect(formatDuration(50)).toBe('50 ms')
+    expect(formatDuration(999)).toBe('999 ms')
+  })
+
+  test('formats seconds', () => {
+    expect(formatDuration(1000)).toBe('1 s')
+    expect(formatDuration(5000)).toBe('5 s')
+    expect(formatDuration(45000)).toBe('45 s')
+  })
+
+  test('formats minutes and seconds', () => {
+    expect(formatDuration(60000)).toBe('1 min')
+    expect(formatDuration(90000)).toBe('1 min 30 s')
+    expect(formatDuration(125000)).toBe('2 min 5 s')
+    expect(formatDuration(600000)).toBe('10 min')
+  })
+
+  test('formats hours and minutes', () => {
+    expect(formatDuration(3600000)).toBe('1 h')
+    expect(formatDuration(3660000)).toBe('1 h 1 min')
+    expect(formatDuration(5400000)).toBe('1 h 30 min')
+    expect(formatDuration(7200000)).toBe('2 h')
+  })
+
+  test('formats days and hours', () => {
+    expect(formatDuration(86400000)).toBe('1 d')
+    expect(formatDuration(90000000)).toBe('1 d 1 h')
+    expect(formatDuration(172800000)).toBe('2 d')
+    expect(formatDuration(183600000)).toBe('2 d 3 h')
+  })
+
+  test('handles negative values', () => {
+    expect(formatDuration(-100)).toBe('0 ms')
+    expect(formatDuration(-5000)).toBe('0 ms')
   })
 })
 
