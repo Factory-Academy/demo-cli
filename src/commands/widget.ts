@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { formatTable } from '../utils/format'
+import { displayList } from '../utils/display'
 
 interface Widget {
   id: string
@@ -24,11 +24,7 @@ widgetCommand
     if (opts.itemId) {
       filtered = widgets.filter(w => w.itemId === opts.itemId)
     }
-    if (filtered.length === 0) {
-      console.log('No widgets found.')
-      return
-    }
-    console.log(formatTable(filtered, ['id', 'name', 'itemId', 'priority']))
+    displayList(filtered, 'widgets', ['id', 'name', 'itemId', 'priority'])
   })
 
 widgetCommand

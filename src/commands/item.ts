@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { formatTable } from '../utils/format'
+import { displayList } from '../utils/display'
 
 interface Item {
   id: string
@@ -24,11 +24,7 @@ itemCommand
     if (opts.status) {
       filtered = items.filter(i => i.status === opts.status)
     }
-    if (filtered.length === 0) {
-      console.log('No items found.')
-      return
-    }
-    console.log(formatTable(filtered, ['id', 'name', 'status', 'createdAt']))
+    displayList(filtered, 'items', ['id', 'name', 'status', 'createdAt'])
   })
 
 itemCommand
