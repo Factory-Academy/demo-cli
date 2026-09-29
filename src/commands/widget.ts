@@ -9,6 +9,8 @@ interface Widget {
   createdAt: string
 }
 
+const DECIMAL_RADIX = 10
+
 const widgets: Widget[] = []
 let nextId = 1
 
@@ -42,7 +44,7 @@ widgetCommand
       id: String(nextId++),
       name: opts.name,
       itemId: opts.itemId,
-      priority: parseInt(opts.priority, 10),
+      priority: parseInt(opts.priority, DECIMAL_RADIX),
       createdAt: new Date().toISOString(),
     }
     widgets.push(widget)
