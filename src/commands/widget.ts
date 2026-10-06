@@ -30,7 +30,11 @@ widgetCommand
       console.log('No widgets found.')
       return
     }
-    console.log(formatTable(filtered, config.table.widgetColumns))
+    console.log(
+      formatTable(filtered, config.table.widgetColumns, {
+        columnSeparator: config.table.columnSeparator,
+      })
+    )
   })
 
 widgetCommand

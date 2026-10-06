@@ -30,7 +30,11 @@ itemCommand
       console.log('No items found.')
       return
     }
-    console.log(formatTable(filtered, config.table.itemColumns))
+    console.log(
+      formatTable(filtered, config.table.itemColumns, {
+        columnSeparator: config.table.columnSeparator,
+      })
+    )
   })
 
 itemCommand
