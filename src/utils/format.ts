@@ -1,4 +1,4 @@
-export function formatTable(data: Record<string, any>[], columns: string[]): string {
+export function formatTable(data: Record<string, any>[], columns: string[], compact = false): string {
   if (data.length === 0) return ''
 
   const widths = columns.map(col =>
@@ -10,6 +10,10 @@ export function formatTable(data: Record<string, any>[], columns: string[]): str
   const rows = data.map(row =>
     columns.map((col, i) => String(row[col] ?? '').padEnd(widths[i])).join('  ')
   )
+
+  if (compact) {
+    return [header, ...rows].join('\n')
+  }
 
   return [header, separator, ...rows].join('\n')
 }
