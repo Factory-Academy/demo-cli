@@ -1,5 +1,6 @@
 import { Command } from 'commander'
 import { formatTable } from '../utils/format'
+import { LRUCache } from '../utils/lru-cache'
 
 interface Item {
   id: string
@@ -11,6 +12,12 @@ interface Item {
 
 const items: Item[] = []
 let nextId = 1
+
+// Cache for item lookups: 100 items max, 5 minute TTL
+const itemCache = new LRUCache<Item>({
+  maxSize: 100,
+  ttl: 5 * 60 * 1000,
+})
 
 export const itemCommand = new Command('items')
   .description('Manage items')
@@ -52,10 +59,19 @@ itemCommand
   .command('get <id>')
   .description('Get item by ID')
   .action((id: string) => {
-    const item = items.find(i => i.id === id)
+    // Check cache first
+    let item = itemCache.get(id)
+    
     if (!item) {
-      console.error(`Item ${id} not found`)
-      process.exit(1)
+      // Cache miss - fetch from storage
+      item = items.find(i => i.id === id)
+      if (!item) {
+        console.error(`Item ${id} not found`)
+        process.exit(1)
+      }
+      // Cache the result
+      itemCache.set(id, item)
     }
+    
     console.log(JSON.stringify(item, null, 2))
   })
