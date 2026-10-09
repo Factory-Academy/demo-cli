@@ -39,4 +39,29 @@ describe('debounce', () => {
       done()
     }, 100)
   })
+
+  test('throws error for negative delay', () => {
+    expect(() => debounce(() => {}, -1)).toThrow('delayMs must be a non-negative number')
+  })
+
+  test('cleans up timeout after execution', (done) => {
+    const fn = jest.fn()
+    const debouncedFn = debounce(fn, 50)
+
+    debouncedFn('first')
+
+    setTimeout(() => {
+      expect(fn).toHaveBeenCalledTimes(1)
+      expect(fn).toHaveBeenCalledWith('first')
+
+      // Call again after cleanup
+      debouncedFn('second')
+
+      setTimeout(() => {
+        expect(fn).toHaveBeenCalledTimes(2)
+        expect(fn).toHaveBeenLastCalledWith('second')
+        done()
+      }, 100)
+    }, 100)
+  })
 })
