@@ -1,5 +1,6 @@
 import { Command } from 'commander'
 import { formatTable } from '../utils/format'
+import { config } from '../config'
 
 interface Widget {
   id: string
@@ -10,7 +11,7 @@ interface Widget {
 }
 
 const widgets: Widget[] = []
-let nextId = 1
+let nextId = config.widgets.startingId
 
 export const widgetCommand = new Command('widgets')
   .description('Manage widgets')
@@ -36,7 +37,7 @@ widgetCommand
   .description('Create a new widget')
   .requiredOption('--name <name>', 'Widget name')
   .requiredOption('--item-id <itemId>', 'Parent item ID')
-  .option('--priority <priority>', 'Priority level', '0')
+  .option('--priority <priority>', 'Priority level', String(config.widgets.defaultPriority))
   .action((opts) => {
     const widget: Widget = {
       id: String(nextId++),

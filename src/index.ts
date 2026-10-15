@@ -2,13 +2,14 @@
 import { Command } from 'commander'
 import { itemCommand } from './commands/item'
 import { widgetCommand } from './commands/widget'
+import { config } from './config'
 
 const program = new Command()
 
 program
-  .name('demo-cli')
+  .name(config.name)
   .description('{{PROJECT_DESCRIPTION}}')
-  .version('0.1.0')
+  .version(config.version)
 
 program.addCommand(itemCommand)
 program.addCommand(widgetCommand)
