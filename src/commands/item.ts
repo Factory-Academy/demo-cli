@@ -1,5 +1,6 @@
 import { Command } from 'commander'
 import { formatTable } from '../utils/format'
+import { config } from '../config'
 
 interface Item {
   id: string
@@ -10,7 +11,7 @@ interface Item {
 }
 
 const items: Item[] = []
-let nextId = 1
+let nextId = config.items.startingId
 
 export const itemCommand = new Command('items')
   .description('Manage items')
@@ -41,7 +42,7 @@ itemCommand
       id: String(nextId++),
       name: opts.name,
       description: opts.description,
-      status: 'active',
+      status: config.items.defaultStatus,
       createdAt: new Date().toISOString(),
     }
     items.push(item)
