@@ -52,7 +52,13 @@ describe('config', () => {
       expect(config.widgets.defaultPriority).toBeGreaterThanOrEqual(0)
     })
 
-    test('decimalRadix is 10', () => {
+    test('decimalRadix is within valid parseInt range', () => {
+      expect(typeof config.decimalRadix).toBe('number')
+      expect(config.decimalRadix).toBeGreaterThanOrEqual(2)
+      expect(config.decimalRadix).toBeLessThanOrEqual(36)
+    })
+
+    test('decimalRadix is 10 for decimal parsing', () => {
       expect(config.decimalRadix).toBe(10)
     })
   })
