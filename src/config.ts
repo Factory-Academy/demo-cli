@@ -8,6 +8,8 @@ export interface AppConfig {
   name: string
   /** CLI application version */
   version: string
+  /** Radix for parsing decimal integers */
+  decimalRadix: number
   /** Default values for items */
   items: {
     /** Starting ID for new items */
@@ -31,6 +33,7 @@ export interface AppConfig {
 export const config: AppConfig = {
   name: 'demo-cli',
   version: '0.1.0',
+  decimalRadix: 10,
   items: {
     startingId: 1,
     defaultStatus: 'active',

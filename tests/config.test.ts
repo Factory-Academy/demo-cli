@@ -5,6 +5,7 @@ describe('config', () => {
     test('has required top-level properties', () => {
       expect(config).toHaveProperty('name')
       expect(config).toHaveProperty('version')
+      expect(config).toHaveProperty('decimalRadix')
       expect(config).toHaveProperty('items')
       expect(config).toHaveProperty('widgets')
     })
@@ -50,6 +51,10 @@ describe('config', () => {
       expect(typeof config.widgets.defaultPriority).toBe('number')
       expect(config.widgets.defaultPriority).toBeGreaterThanOrEqual(0)
     })
+
+    test('decimalRadix is 10', () => {
+      expect(config.decimalRadix).toBe(10)
+    })
   })
 
   describe('type safety', () => {
@@ -57,6 +62,7 @@ describe('config', () => {
       const testConfig: AppConfig = {
         name: config.name,
         version: config.version,
+        decimalRadix: config.decimalRadix,
         items: config.items,
         widgets: config.widgets,
       }

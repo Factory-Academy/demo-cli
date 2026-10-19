@@ -43,7 +43,7 @@ widgetCommand
       id: String(nextId++),
       name: opts.name,
       itemId: opts.itemId,
-      priority: parseInt(opts.priority, 10),
+      priority: parseInt(opts.priority, config.decimalRadix),
       createdAt: new Date().toISOString(),
     }
     widgets.push(widget)
