@@ -3,6 +3,8 @@
  * Centralizes constants and default values used across the CLI
  */
 
+import { ItemState } from './workflow/itemStates'
+
 export interface AppConfig {
   /** CLI application name */
   name: string
@@ -12,8 +14,8 @@ export interface AppConfig {
   items: {
     /** Starting ID for new items */
     startingId: number
-    /** Default status for new items */
-    defaultStatus: string
+    /** Lifecycle state new items start in */
+    defaultStatus: ItemState
   }
   /** Default values for widgets */
   widgets: {
@@ -33,7 +35,7 @@ export const config: AppConfig = {
   version: '0.1.0',
   items: {
     startingId: 1,
-    defaultStatus: 'active',
+    defaultStatus: ItemState.Active,
   },
   widgets: {
     startingId: 1,
