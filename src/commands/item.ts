@@ -9,6 +9,8 @@ interface Item {
   createdAt: string
 }
 
+const JSON_INDENT_SPACES = 2
+
 const items: Item[] = []
 let nextId = 1
 
@@ -57,5 +59,5 @@ itemCommand
       console.error(`Item ${id} not found`)
       process.exit(1)
     }
-    console.log(JSON.stringify(item, null, 2))
+    console.log(JSON.stringify(item, null, JSON_INDENT_SPACES))
   })
