@@ -1,4 +1,4 @@
-import { formatTable } from '../src/utils/format'
+import { formatTable, maxNumber } from '../src/utils/format'
 
 describe('formatTable', () => {
   test('formats data into aligned columns', () => {
@@ -14,5 +14,11 @@ describe('formatTable', () => {
 
   test('handles empty data', () => {
     expect(formatTable([], ['id', 'name'])).toBe('')
+  })
+})
+
+describe('maxNumber', () => {
+  test('returns fallback for empty arrays', () => {
+    expect(maxNumber([], 5)).toBe(5)
   })
 })
