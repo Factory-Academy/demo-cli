@@ -13,4 +13,4 @@ program
 program.addCommand(itemCommand)
 program.addCommand(widgetCommand)
 
-program.parse()
+program.parseAsync(process.argv)

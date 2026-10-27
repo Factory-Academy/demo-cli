@@ -1,5 +1,6 @@
 import { Command } from 'commander'
-import { formatTable } from '../utils/format'
+import { displayList } from '../utils/display'
+import { getNextId } from '../utils/id'
 
 interface Item {
   id: string
@@ -12,7 +13,6 @@ interface Item {
 const JSON_INDENT_SPACES = 2
 
 const items: Item[] = []
-let nextId = 1
 
 export const itemCommand = new Command('items')
   .description('Manage items')
@@ -26,11 +26,7 @@ itemCommand
     if (opts.status) {
       filtered = items.filter(i => i.status === opts.status)
     }
-    if (filtered.length === 0) {
-      console.log('No items found.')
-      return
-    }
-    console.log(formatTable(filtered, ['id', 'name', 'status', 'createdAt']))
+    displayList(filtered, 'items', ['id', 'name', 'status', 'createdAt'])
   })
 
 itemCommand
@@ -38,9 +34,9 @@ itemCommand
   .description('Create a new item')
   .requiredOption('--name <name>', 'Item name')
   .option('--description <desc>', 'Item description')
-  .action((opts) => {
+  .action(async (opts) => {
     const item: Item = {
-      id: String(nextId++),
+      id: await getNextId(),
       name: opts.name,
       description: opts.description,
       status: 'active',
