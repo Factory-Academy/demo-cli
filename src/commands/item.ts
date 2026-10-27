@@ -72,3 +72,19 @@ itemCommand
     itemCache.set(id, item)
     console.log(JSON.stringify(item, null, JSON_INDENT_SPACES))
   })
+
+itemCommand
+  .command('cache-stats')
+  .description('Show cache statistics')
+  .action(() => {
+    const stats = itemCache.getStats()
+    console.log(JSON.stringify(stats, null, JSON_INDENT_SPACES))
+  })
+
+itemCommand
+  .command('cache-clear')
+  .description('Clear the cache')
+  .action(() => {
+    itemCache.clear()
+    console.log('Cache cleared.')
+  })
