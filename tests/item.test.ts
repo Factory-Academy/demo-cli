@@ -15,6 +15,11 @@ describe('formatTable', () => {
   test('handles empty data', () => {
     expect(formatTable([], ['id', 'name'])).toBe('')
   })
+
+  test('handles empty columns', () => {
+    const data = [{ id: '1', name: 'Test' }]
+    expect(formatTable(data, [])).toBe('')
+  })
 })
 
 describe('formatDuration', () => {
@@ -44,5 +49,19 @@ describe('formatDuration', () => {
 
   test('handles negative values', () => {
     expect(formatDuration(-5000)).toBe('-5s')
+  })
+
+  test('handles fractional milliseconds', () => {
+    expect(formatDuration(0.5)).toBe('<1ms')
+    expect(formatDuration(0.9)).toBe('<1ms')
+  })
+
+  test('handles NaN', () => {
+    expect(formatDuration(NaN)).toBe('N/A')
+  })
+
+  test('handles Infinity', () => {
+    expect(formatDuration(Infinity)).toBe('N/A')
+    expect(formatDuration(-Infinity)).toBe('N/A')
   })
 })

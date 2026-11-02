@@ -1,5 +1,5 @@
 export function formatTable(data: Record<string, any>[], columns: string[]): string {
-  if (data.length === 0) return ''
+  if (data.length === 0 || columns.length === 0) return ''
 
   const widths = columns.map(col =>
     Math.max(col.length, ...data.map(row => String(row[col] ?? '').length))
@@ -15,8 +15,12 @@ export function formatTable(data: Record<string, any>[], columns: string[]): str
 }
 
 export function formatDuration(ms: number): string {
+  if (!isFinite(ms)) return 'N/A'
   if (ms === 0) return '0ms'
   if (ms < 0) return '-' + formatDuration(-ms)
+
+  const rounded = Math.round(ms)
+  if (rounded === 0) return '<1ms'
 
   const units = [
     { label: 'd', value: 86400000 },
@@ -27,7 +31,7 @@ export function formatDuration(ms: number): string {
   ]
 
   const parts: string[] = []
-  let remaining = ms
+  let remaining = rounded
 
   for (const unit of units) {
     if (remaining >= unit.value) {
