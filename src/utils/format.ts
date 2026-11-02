@@ -13,3 +13,29 @@ export function formatTable(data: Record<string, any>[], columns: string[]): str
 
   return [header, separator, ...rows].join('\n')
 }
+
+export function formatDuration(ms: number): string {
+  if (ms === 0) return '0ms'
+  if (ms < 0) return '-' + formatDuration(-ms)
+
+  const units = [
+    { label: 'd', value: 86400000 },
+    { label: 'h', value: 3600000 },
+    { label: 'm', value: 60000 },
+    { label: 's', value: 1000 },
+    { label: 'ms', value: 1 },
+  ]
+
+  const parts: string[] = []
+  let remaining = ms
+
+  for (const unit of units) {
+    if (remaining >= unit.value) {
+      const count = Math.floor(remaining / unit.value)
+      parts.push(`${count}${unit.label}`)
+      remaining -= count * unit.value
+    }
+  }
+
+  return parts.slice(0, 2).join(' ')
+}
